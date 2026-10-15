@@ -1,9 +1,19 @@
-
 [project]
 name = "fssai-food-label-compliance"
 version = "0.1.0"
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "Flask",
+    "Flask-SQLAlchemy",
+    "Werkzeug>=3.0.0",
+    "numpy>=1.24.0",
+    "Pillow>=10.0.0",
+    "reportlab>=4.0.0",
+    "joblib>=1.3.0",
+    "rapidocr-onnxruntime>=1.2.3",
+    "python-dotenv>=1.0.0",
+    "scikit-learn",
+]
 
 [tool.vercel]
 entrypoint = "run:app"
