@@ -1,0 +1,204 @@
+{% extends "base.html" %}
+
+{% block title %}Home - FSSAI Food Label Screening Platform{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Hero Section -->
+    <div class="hero-section mb-5">
+        <div class="row align-items-center gy-4">
+            <div class="col-lg-7">
+                <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-3 py-2 rounded-pill fw-semibold mb-3">
+                    <i class="bi bi-shield-check me-1"></i> FSSAI Labelling Regulations, 2020 Reference
+                </span>
+                <h1 class="display-5 fw-bold mb-3 text-dark">
+                    Review Packaged Food Labels with <span class="text-success">Computer Vision & OCR</span>
+                </h1>
+                <p class="lead text-secondary mb-4">
+                    Screen label text against 14 FSSAI reference checks. Review detected evidence, correct OCR text, and identify declarations that may need attention.
+                </p>
+                <div class="d-flex flex-wrap gap-3">
+                    <a href="{{ url_for('verifier.verify') }}" class="btn btn-success btn-lg px-4 shadow-sm">
+                        <i class="bi bi-camera-fill me-2"></i> Audit Food Label Now
+                    </a>
+                    <a href="{{ url_for('history.history') }}" class="btn btn-outline-secondary btn-lg px-4">
+                        <i class="bi bi-clock-history me-2"></i> View Scan History
+                    </a>
+                </div>
+            </div>
+            
+            <div class="col-lg-5">
+                <div class="row g-3">
+                    <div class="col-6">
+                        <div class="hero-stats-card">
+                            <div class="stat-icon bg-success bg-opacity-10 text-success mb-2">
+                                <i class="bi bi-check2-circle"></i>
+                            </div>
+                            <div class="fs-3 fw-bold">{{ compliant_scans }}</div>
+                            <div class="text-secondary small">Audits with All Checks Confirmed</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="hero-stats-card">
+                            <div class="stat-icon bg-primary bg-opacity-10 text-primary mb-2">
+                                <i class="bi bi-card-checklist"></i>
+                            </div>
+                            <div class="fs-3 fw-bold">14 Checks</div>
+                            <div class="text-secondary small">FSSAI Label Reference Fields</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="hero-stats-card">
+                            <div class="stat-icon bg-info bg-opacity-10 text-info mb-2">
+                                <i class="bi bi-folder-check"></i>
+                            </div>
+                            <div class="fs-3 fw-bold">{{ total_scans }}</div>
+                            <div class="text-secondary small">Total Label Audits</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Core Technology Pipeline -->
+    <div class="row g-4 mb-5">
+        <div class="col-12 text-center mb-2">
+            <h2 class="h3 fw-bold">How the Verification Engine Works</h2>
+            <p class="text-secondary">A transparent screening workflow showing which required declarations were detected in the label text</p>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card h-100 border-0 shadow-sm rounded-4 text-center p-3">
+                <div class="d-inline-flex align-items-center justify-content-center bg-primary bg-opacity-10 text-primary rounded-circle mx-auto mb-3" style="width: 56px; height: 56px;">
+                    <i class="bi bi-image fs-4"></i>
+                </div>
+                <h5 class="fw-bold mb-2">1. OpenCV Vision</h5>
+                <p class="text-secondary small mb-0">
+                    Bilateral denoising, Otsu/adaptive binarization, deskewing orientation correction, and HSV veg/non-veg contour analysis.
+                </p>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card h-100 border-0 shadow-sm rounded-4 text-center p-3">
+                <div class="d-inline-flex align-items-center justify-content-center bg-success bg-opacity-10 text-success rounded-circle mx-auto mb-3" style="width: 56px; height: 56px;">
+                    <i class="bi bi-bounding-box fs-4"></i>
+                </div>
+                <h5 class="fw-bold mb-2">2. Multi-Tier OCR</h5>
+                <p class="text-secondary small mb-0">
+                    PaddleOCR (primary) and EasyOCR with bounding box geometry extraction, confidence mapping, and interactive correction.
+                </p>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card h-100 border-0 shadow-sm rounded-4 text-center p-3">
+                <div class="d-inline-flex align-items-center justify-content-center bg-warning bg-opacity-10 text-warning rounded-circle mx-auto mb-3" style="width: 56px; height: 56px;">
+                    <i class="bi bi-shield-lock fs-4"></i>
+                </div>
+                <h5 class="fw-bold mb-2">3. Label Checks</h5>
+                <p class="text-secondary small mb-0">
+                    Each field is marked PRESENT when supported by extracted evidence, otherwise MISSING.
+                </p>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card h-100 border-0 shadow-sm rounded-4 text-center p-3">
+                <div class="d-inline-flex align-items-center justify-content-center bg-danger bg-opacity-10 text-danger rounded-circle mx-auto mb-3" style="width: 56px; height: 56px;">
+                    <i class="bi bi-file-earmark-pdf fs-4"></i>
+                </div>
+                <h5 class="fw-bold mb-2">4. Audit Report</h5>
+                <p class="text-secondary small mb-0">
+                    Review field findings, coverage, and recommended follow-up actions in a downloadable report.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 14 Mandatory Fields Summary Grid -->
+    <div class="card border-0 shadow-sm rounded-4 p-4 mb-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h3 class="h4 fw-bold mb-1">14 Mandatory FSSAI Label Compliance Dimensions</h3>
+                <p class="text-secondary small mb-0">Under Food Safety and Standards (Labelling and Display) Regulations, 2020</p>
+            </div>
+            <a href="{{ url_for('main.about') }}" class="btn btn-outline-success btn-sm">
+                View Full Regulations Guide <i class="bi bi-arrow-right ms-1"></i>
+            </a>
+        </div>
+
+        <div class="row g-3">
+            {% for key, field in fields_definitions.items() %}
+            <div class="col-md-4 col-sm-6">
+                <div class="p-3 border rounded-3 h-100">
+                    <div class="d-flex align-items-center justify-content-between mb-1">
+                        <span class="fw-bold small">{{ loop.index }}. {{ field.title }}</span>
+                        <span class="badge bg-secondary bg-opacity-10 text-secondary">{{ field.weight }} pts</span>
+                    </div>
+                    <div class="text-secondary" style="font-size: 0.75rem;">{{ field.regulation }}</div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Recent Scans Table -->
+    {% if recent_scans %}
+    <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4 class="h5 fw-bold mb-0">Recent Verification Scans</h4>
+            <a href="{{ url_for('history.history') }}" class="btn btn-sm btn-link text-success text-decoration-none">
+                View All {{ total_scans }} Scans <i class="bi bi-arrow-right"></i>
+            </a>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Scan ID</th>
+                        <th>Product Name</th>
+                        <th>Audit Timestamp</th>
+                        <th>Evidence Coverage</th>
+                        <th>Compliance Posture</th>
+                        <th class="text-end">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for scan in recent_scans %}
+                    <tr>
+                        <td class="fw-semibold">#{{ scan.id }}</td>
+                        <td>{{ scan.product_name }}</td>
+                        <td class="text-secondary small">{{ scan.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="fw-bold">{{ scan.overall_score }}%</span>
+                                <div class="progress flex-grow-1" style="height: 6px; width: 60px;">
+                                    <div class="progress-bar {% if scan.compliance_status == 'COMPLIANT' %}bg-success{% else %}bg-danger{% endif %}"
+                                         style="width: {{ scan.overall_score }}%;"></div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            {% if scan.compliance_status == 'COMPLIANT' %}
+                                <span class="badge bg-success bg-opacity-10 text-success border border-success">COMPLIANT</span>
+                            {% else %}
+                                <span class="badge bg-danger bg-opacity-10 text-danger border border-danger">NON-COMPLIANT</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            <a href="{{ url_for('verifier.view_scan', scan_id=scan.id) }}" class="btn btn-outline-success btn-sm">
+                                View Audit <i class="bi bi-chevron-right ms-1"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

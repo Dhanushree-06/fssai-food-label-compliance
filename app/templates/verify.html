@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block title %}Check FSSAI Label - AI Compliance Platform{% endblock %}
+
+{% block content %}
+<div class="container py-2">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="text-center mb-4">
+                <h1 class="h2 fw-bold">Food Label Compliance Audit</h1>
+                    <p class="text-secondary">Upload a packaged food label image to review it against 14 FSSAI label checks.</p>
+            </div>
+
+            <form action="{{ url_for('verifier.verify') }}" method="POST" enctype="multipart/form-data" id="verifyForm">
+                    <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+                        <div class="upload-dropzone" id="dropzone" onclick="document.getElementById('fileInput').click()">
+                            <i class="bi bi-cloud-arrow-up display-4 text-success mb-3"></i>
+                            <h5 class="fw-bold">Drag and drop your food label image here</h5>
+                            <p class="text-secondary small mb-3">Supported formats: PNG, JPG, JPEG, WEBP (Max 16 MB)</p>
+                            <button type="button" class="btn btn-outline-success px-4">Browse Files</button>
+                            <input type="file" name="label_image" id="fileInput" class="d-none" accept="image/*" onchange="handleFileSelect(this)">
+                        </div>
+                        <div id="fileSelectedBadge" class="mt-3 text-center d-none">
+                            <span class="badge bg-success p-2 px-3">
+                                <i class="bi bi-file-earmark-image me-1"></i> <span id="fileNameDisplay">file.png</span>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Run Verification Action Button -->
+                <div class="text-center">
+                    <button type="submit" class="btn btn-success btn-lg px-5 py-3 fw-bold shadow" id="submitBtn">
+                        <i class="bi bi-shield-check me-2"></i> Run FSSAI Compliance Verification
+                    </button>
+                    <div id="loadingSpinner" class="d-none mt-3">
+                        <div class="spinner-border text-success" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="text-secondary small mt-2">Executing OpenCV preprocessing, OCR text extraction, and 14-field statutory audit...</p>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function handleFileSelect(input) {
+        if (input.files && input.files[0]) {
+            const fileName = input.files[0].name;
+            document.getElementById('fileNameDisplay').textContent = fileName;
+            document.getElementById('fileSelectedBadge').classList.remove('d-none');
+        }
+    }
+
+    // Drag and drop handlers
+    const dropzone = document.getElementById('dropzone');
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dropzone.addEventListener(eventName, (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            dropzone.classList.add('dragover');
+        });
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+        dropzone.addEventListener(eventName, (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            dropzone.classList.remove('dragover');
+        });
+    });
+
+    dropzone.addEventListener('drop', (e) => {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        if (files.length > 0) {
+            document.getElementById('fileInput').files = files;
+            handleFileSelect(document.getElementById('fileInput'));
+        }
+    });
+
+    // Form submit loading indicator
+    document.getElementById('verifyForm').addEventListener('submit', function() {
+        document.getElementById('submitBtn').classList.add('d-none');
+        document.getElementById('loadingSpinner').classList.remove('d-none');
+    });
+</script>
+{% endblock %}

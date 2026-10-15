@@ -1,0 +1,291 @@
+/*
+ * Custom Styling - AI-Based Food Label Compliance Verification Platform
+ * Modern, Professional, Glassmorphism & High-Contrast Design
+ */
+
+:root {
+    --primary-color: #1b5e20;
+    --primary-light: #2e7d32;
+    --primary-dark: #0f3d14;
+    --accent-gold: #ffb300;
+    --bg-surface: #ffffff;
+    --border-color: #e0e0e0;
+    --text-primary: #1e293b;
+    --text-secondary: #64748b;
+    --status-present-bg: #e8f5e9;
+    --status-present-text: #2e7d32;
+    --status-review-bg: #e3f2fd;
+    --status-review-text: #1565c0;
+    --status-invalid-bg: #fff3e0;
+    --status-invalid-text: #e65100;
+    --status-missing-bg: #ffebee;
+    --status-missing-text: #c62828;
+}
+
+[data-bs-theme="dark"] {
+    --bg-surface: #1e293b;
+    --border-color: #334155;
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+    --status-present-bg: rgba(46, 125, 50, 0.2);
+    --status-present-text: #81c784;
+    --status-review-bg: rgba(21, 101, 192, 0.2);
+    --status-review-text: #90caf9;
+    --status-invalid-bg: rgba(230, 81, 0, 0.2);
+    --status-invalid-text: #ffb74d;
+    --status-missing-bg: rgba(198, 40, 40, 0.2);
+    --status-missing-text: #e57373;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    color: var(--text-primary);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+main {
+    flex: 1;
+}
+
+h1, h2, h3, h4, h5, h6, .brand-title {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+}
+
+/* Navbar */
+.bg-fssai {
+    background: linear-gradient(135deg, #1b5e20 0%, #2e7d32 100%) !important;
+}
+
+.brand-badge {
+    width: 36px;
+    height: 36px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    color: #fff;
+}
+
+.brand-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+    color: #fff;
+    line-height: 1.1;
+}
+
+.brand-subtitle {
+    font-size: 0.65rem;
+    color: rgba(255, 255, 255, 0.8);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Hero Section */
+.hero-section {
+    background: linear-gradient(135deg, rgba(27, 94, 32, 0.06) 0%, rgba(46, 125, 50, 0.12) 100%);
+    border-radius: 20px;
+    border: 1px solid rgba(46, 125, 50, 0.15);
+    padding: 3rem 2rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.hero-stats-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    padding: 1.25rem;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.hero-stats-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
+}
+
+.stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+
+/* Dropzone & File Upload */
+.upload-dropzone {
+    border: 2px dashed #4caf50;
+    border-radius: 16px;
+    background: rgba(76, 175, 80, 0.03);
+    padding: 2.5rem 1.5rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.upload-dropzone:hover, .upload-dropzone.dragover {
+    background: rgba(76, 175, 80, 0.08);
+    border-color: #2e7d32;
+    transform: scale(1.01);
+}
+
+/* Status Badges */
+.badge-status {
+    padding: 0.45rem 0.8rem;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.status-present {
+    background-color: var(--status-present-bg);
+    color: var(--status-present-text);
+    border: 1px solid rgba(46, 125, 50, 0.3);
+}
+
+.status-needs_review, .status-needs-review {
+    background-color: var(--status-review-bg);
+    color: var(--status-review-text);
+    border: 1px solid rgba(21, 101, 192, 0.3);
+}
+
+.status-invalid {
+    background-color: var(--status-invalid-bg);
+    color: var(--status-invalid-text);
+    border: 1px solid rgba(230, 81, 0, 0.3);
+}
+
+.status-missing {
+    background-color: var(--status-missing-bg);
+    color: var(--status-missing-text);
+    border: 1px solid rgba(198, 40, 40, 0.3);
+}
+
+/* Compliance Score Dial */
+.score-card {
+    border-radius: 16px;
+    background: linear-gradient(145deg, var(--bg-surface), rgba(0,0,0,0.02));
+    border: 1px solid var(--border-color);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+}
+
+.score-number {
+    font-size: 2.75rem;
+    font-weight: 800;
+    line-height: 1;
+}
+
+/* Image Visualizer with Bounding Boxes */
+.image-preview-wrapper {
+    position: relative;
+    max-height: 520px;
+    overflow: auto;
+    background: #0f172a;
+    border-radius: 12px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.image-preview-wrapper img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 8px;
+}
+
+.image-preview-wrapper.zoomed {
+    justify-content: flex-start;
+    align-items: flex-start;
+}
+
+.image-preview-wrapper.zoomed img {
+    max-width: none;
+}
+
+/* Interactive Accordion for 14 Fields */
+.accordion-field-item {
+    border: 1px solid var(--border-color);
+    border-radius: 10px !important;
+    margin-bottom: 0.75rem;
+    overflow: hidden;
+    background: var(--bg-surface);
+}
+
+.accordion-field-item .accordion-button {
+    background: transparent;
+    padding: 0.9rem 1.25rem;
+    font-weight: 600;
+}
+
+.accordion-field-item .accordion-button:not(.collapsed) {
+    background: rgba(0, 0, 0, 0.02);
+    box-shadow: none;
+}
+
+.evidence-box {
+    background: rgba(0, 0, 0, 0.03);
+    border-left: 3px solid #2e7d32;
+    border-radius: 0 6px 6px 0;
+    padding: 0.6rem 0.85rem;
+    font-family: monospace;
+    font-size: 0.82rem;
+    word-break: break-word;
+}
+
+.evidence-box.evidence-invalid {
+    border-left-color: #e65100;
+}
+
+.evidence-box.evidence-missing {
+    border-left-color: #c62828;
+}
+
+/* Editable OCR Editor */
+.ocr-textarea {
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 0.85rem;
+    line-height: 1.45;
+    background: rgba(0, 0, 0, 0.02);
+    border-radius: 8px;
+    resize: vertical;
+}
+
+/* History Table */
+.table-history {
+    vertical-align: middle;
+}
+
+.table-history th {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-secondary);
+}
+
+.score-progress {
+    height: 8px;
+    border-radius: 4px;
+}
+
+/* Print Specific */
+@media print {
+    .navbar, .footer, .btn, .ocr-edit-panel, #themeToggle {
+        display: none !important;
+    }
+    body {
+        background: #fff !important;
+        color: #000 !important;
+    }
+}

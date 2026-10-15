@@ -1,0 +1,67 @@
+{
+    "dataset_total_rows": 150,
+    "train_rows": 120,
+    "test_rows": 30,
+    "classes": [
+        "COMPLIANT",
+        "NON_COMPLIANT",
+        "PARTIALLY_COMPLIANT"
+    ],
+    "test_accuracy": 1.0,
+    "test_precision": 1.0,
+    "test_recall": 1.0,
+    "test_f1": 1.0,
+    "confusion_matrix": [
+        [
+            10,
+            0,
+            0
+        ],
+        [
+            0,
+            10,
+            0
+        ],
+        [
+            0,
+            0,
+            10
+        ]
+    ],
+    "classification_report": {
+        "COMPLIANT": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1-score": 1.0,
+            "support": 10.0
+        },
+        "NON_COMPLIANT": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1-score": 1.0,
+            "support": 10.0
+        },
+        "PARTIALLY_COMPLIANT": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1-score": 1.0,
+            "support": 10.0
+        },
+        "accuracy": 1.0,
+        "macro avg": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1-score": 1.0,
+            "support": 30.0
+        },
+        "weighted avg": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1-score": 1.0,
+            "support": 30.0
+        }
+    },
+    "model_architecture": "TF-IDF (1-2 ngrams, max_features=1200) + Logistic Regression (C=2.0, balanced)",
+    "train_test_split": "80/20 Stratified",
+    "data_leakage_prevented": true
+}

@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block title %}Regulations Guide - FSSAI Verifier{% endblock %}
+
+{% block content %}
+<div class="container py-3">
+    <div class="mb-4">
+        <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 mb-2">
+            FSSAI LABEL REFERENCE
+        </span>
+        <h1 class="h2 fw-bold mb-2">Food Label Regulations Guide</h1>
+        <p class="text-secondary mb-0">
+            The platform screens extracted label text against 14 reference checks based on the
+            Food Safety and Standards (Labelling and Display) Regulations, 2020.
+        </p>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th scope="col" class="ps-4">#</th>
+                        <th scope="col">Label field</th>
+                        <th scope="col">Screening focus</th>
+                        <th scope="col">Reference</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for key, field in fields_definitions.items() %}
+                    <tr>
+                        <td class="ps-4 text-secondary">{{ loop.index }}</td>
+                        <th scope="row" class="fw-semibold">{{ field.title }}</th>
+                        <td class="text-secondary">{{ field.description }}</td>
+                        <td class="small text-secondary">{{ field.regulation }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="alert alert-light border rounded-4 p-4 mb-0">
+        <h2 class="h5 fw-bold d-flex align-items-center gap-2">
+            <i class="bi bi-shield-exclamation text-warning"></i>
+            Important: screening, not certification
+        </h2>
+        <p class="text-secondary small mb-0">
+            Results are based on text extracted from the submitted image. OCR may miss or misread
+            text, so a missing finding is not by itself proof that the original label omits a
+            declaration. Check every result against the packaging and applicable regulations.
+            This tool is not an official FSSAI certification or legal determination.
+        </p>
+    </div>
+</div>
+{% endblock %}

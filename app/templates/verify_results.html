@@ -1,0 +1,465 @@
+{% extends "base.html" %}
+
+{% block title %}Audit Results - {{ scan.product_name }} - FSSAI Verifier{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-lg-4 py-2">
+    <!-- Audit Header Bar -->
+    <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+        <div class="row align-items-center gy-3">
+            <div class="col-lg-6">
+                <div class="d-flex align-items-center gap-2 mb-1">
+                    <span class="badge bg-secondary">Audit #{{ scan.id }}</span>
+                    <span class="text-secondary small"><i class="bi bi-clock me-1"></i> {{ scan.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</span>
+                    <span class="badge bg-light text-secondary border"><i class="bi bi-fonts me-1"></i> OCR: {{ scan.ocr_engine }}</span>
+                </div>
+                <h1 class="h3 fw-bold mb-1" id="displayProductName">{{ scan.product_name }}</h1>
+                <p class="text-secondary small mb-0">Screening against FSSAI Labelling and Display Regulations, 2020 references</p>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="d-flex flex-wrap align-items-center justify-content-lg-end gap-3">
+                    <!-- Overall Score & Badge -->
+                    <div class="d-flex align-items-center gap-3 bg-light p-2 px-3 rounded-4 border">
+                        <div class="text-end">
+                            <div class="small text-secondary fw-semibold">Evidence Coverage</div>
+                            <div class="h4 fw-bold mb-0 {% if scan_dict.compliance_status == 'COMPLIANT' %}text-success{% else %}text-danger{% endif %}" id="overallScoreDisplay">{{ scan_dict.score }}%</div>
+                        </div>
+                        <div>
+                            {% if scan_dict.compliance_status == 'COMPLIANT' %}
+                                <span class="badge-status status-present" id="complianceStatusBadge">
+                                    <i class="bi bi-check-circle-fill"></i> COMPLIANT
+                                </span>
+                            {% else %}
+                                <span class="badge-status status-missing" id="complianceStatusBadge">
+                                    <i class="bi bi-x-circle-fill"></i> NON-COMPLIANT
+                                </span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="d-flex gap-2">
+                        <a href="{{ url_for('verifier.download_pdf', scan_id=scan.id) }}" class="btn btn-outline-danger btn-sm px-3 shadow-sm" id="downloadPdfBtn" target="_blank">
+                            <i class="bi bi-file-earmark-pdf-fill me-1"></i> Download PDF
+                        </a>
+                        <button onclick="window.print()" class="btn btn-outline-secondary btn-sm px-3">
+                            <i class="bi bi-printer me-1"></i> Print
+                        </button>
+                        <a href="{{ url_for('verifier.verify') }}" class="btn btn-success btn-sm px-3">
+                            <i class="bi bi-plus-circle me-1"></i> New Audit
+                        </a>
+                    </div>
+                </div>
+                <p class="text-secondary small mt-2 mb-0" id="overallStatusDescription">
+                    {{ scan_dict.status_description }}
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main 2-Column Grid -->
+    <div class="row g-4">
+        <!-- Left Column: Image Previews & Editable OCR Text -->
+        <div class="col-lg-5">
+            <!-- Image Previews Tab -->
+            <div class="card border-0 shadow-sm rounded-4 p-3 mb-4">
+                <ul class="nav nav-pills nav-fill mb-3" id="imageTabs" role="tablist">
+                    <li class="nav-item">
+                        <button class="nav-link active btn-sm" id="annotated-tab" data-bs-toggle="tab" data-bs-target="#annotatedPane" type="button">
+                            <i class="bi bi-bounding-box me-1"></i> Bounding Boxes
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link btn-sm" id="preproc-tab" data-bs-toggle="tab" data-bs-target="#preprocPane" type="button">
+                            <i class="bi bi-sliders me-1"></i> Enhanced Image
+                        </button>
+                    </li>
+                </ul>
+
+                <div class="tab-content" id="imageTabsContent">
+                    <div class="tab-pane fade show active" id="annotatedPane">
+                        <div class="image-preview-wrapper">
+                            <img src="{{ url_for('static', filename=scan.annotated_image_path or scan.image_path) }}" alt="Annotated Label" id="annotatedImage" class="img-fluid">
+                        </div>
+                        <div class="text-secondary small mt-2 text-center">
+                            <i class="bi bi-info-circle me-1"></i> OCR regions on the image version selected for text reading.
+                        </div>
+                        <button class="btn btn-outline-secondary btn-sm d-block mx-auto mt-2 image-zoom-toggle" type="button" aria-pressed="false">
+                            <i class="bi bi-zoom-in me-1"></i> View at original size
+                        </button>
+                    </div>
+
+                    <div class="tab-pane fade" id="preprocPane">
+                        <div class="image-preview-wrapper">
+                            {% if scan.preprocessed_image_path %}
+                                <img src="{{ url_for('static', filename=scan.preprocessed_image_path) }}" alt="Preprocessed Label" class="img-fluid">
+                            {% else %}
+                                <img src="{{ url_for('static', filename=scan.image_path) }}" alt="Original Label" class="img-fluid">
+                            {% endif %}
+                        </div>
+                        <div class="text-secondary small mt-2 text-center">
+                            <i class="bi bi-check-circle me-1"></i> Deskewed, contrast-enhanced grayscale with fine text preserved.
+                        </div>
+                        <button class="btn btn-outline-secondary btn-sm d-block mx-auto mt-2 image-zoom-toggle" type="button" aria-pressed="false">
+                            <i class="bi bi-zoom-in me-1"></i> View at original size
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Editable OCR Text Box -->
+            <div class="card border-0 shadow-sm rounded-4 p-3 mb-4 ocr-edit-panel">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h5 class="h6 fw-bold mb-0 d-flex align-items-center gap-2">
+                        <i class="bi bi-pencil-square text-success"></i> Ordered OCR Text (Editable)
+                    </h5>
+                    <span class="badge bg-light text-secondary border">Interactive Correction</span>
+                </div>
+                <p class="text-secondary small mb-2">
+                    Review and edit extracted text below to correct OCR misreads, then re-evaluate compliance:
+                </p>
+                <textarea class="form-control ocr-textarea mb-3" id="ocrTextArea" rows="12">{{ scan.corrected_ocr_text or scan.original_ocr_text }}</textarea>
+                
+                <div class="d-flex justify-content-between align-items-center">
+                    <button class="btn btn-outline-secondary btn-sm" onclick="resetOCRText()">
+                        <i class="bi bi-arrow-counterclockwise me-1"></i> Reset Original
+                    </button>
+                    <button class="btn btn-success btn-sm px-3 fw-semibold shadow-sm" id="recheckBtn" onclick="recheckCompliance()">
+                        <span id="recheckBtnText"><i class="bi bi-arrow-repeat me-1"></i> Re-evaluate Compliance</span>
+                        <span id="recheckSpinner" class="spinner-border spinner-border-sm d-none" role="status"></span>
+                    </button>
+                </div>
+                <div id="recheckAlert" class="mt-2 d-none"></div>
+            </div>
+
+        </div>
+
+        <!-- Right Column: Compliance Analytics & 14-Field Audit Details -->
+        <div class="col-lg-7">
+            <!-- Analytics Summary Row -->
+            <div class="row g-3 mb-4">
+                <div class="col-sm-6 col-md-3">
+                    <div class="p-3 bg-success bg-opacity-10 border border-success border-opacity-25 rounded-4 text-center">
+                        <div class="h3 fw-bold text-success mb-0" id="cntPresentDisplay">0</div>
+                        <div class="small text-success fw-semibold">PRESENT</div>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-md-3">
+                    <div class="p-3 bg-danger bg-opacity-10 border border-danger border-opacity-25 rounded-4 text-center">
+                        <div class="h3 fw-bold text-danger mb-0" id="cntMissingDisplay">0</div>
+                        <div class="small text-danger fw-semibold">MISSING</div>
+                    </div>
+                </div>
+            </div>
+            <p class="small text-secondary mb-3">
+                MISSING means the declaration was not found in extracted OCR text; confirm it on the original package before treating it as physically absent.
+            </p>
+
+            <!-- Charts Card -->
+            <div class="card border-0 shadow-sm rounded-4 p-3 mb-4">
+                <div class="row align-items-center gy-3">
+                    <div class="col-md-6 text-center">
+                        <h6 class="fw-bold small text-secondary mb-2">Statutory Field Status Breakdown</h6>
+                        <div style="height: 200px; position: relative;">
+                            <canvas id="doughnutChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="col-md-6 text-center">
+                        <h6 class="fw-bold small text-secondary mb-2">Compliance Dimension Radar</h6>
+                        <div style="height: 200px; position: relative;">
+                            <canvas id="radarChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 14 Mandatory Fields Accordion -->
+            <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="h5 fw-bold mb-0">14 FSSAI Label Reference Checks</h5>
+                    <span class="badge bg-light text-secondary border">Evidence-Based Evaluation</span>
+                </div>
+
+                <div class="accordion" id="fssaiFieldsAccordion">
+                    {% for f_key, defn in fields_definitions.items() %}
+                        {% set f_result = scan_dict.fields.get(f_key, {}) %}
+                        {% set status = f_result.get('status', 'MISSING') %}
+                        {% set evidence = f_result.get('evidence', 'No evidence found') %}
+                        {% set recommendation = f_result.get('recommendation', 'Review FSSAI requirement') %}
+                        {% set rules = f_result.get('rules_passed', []) %}
+                        
+                        <div class="accordion-item accordion-field-item" id="fieldCard_{{ f_key }}">
+                            <h2 class="accordion-header" id="heading_{{ f_key }}">
+                                <button class="accordion-button {% if loop.index > 3 %}collapsed{% endif %}" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_{{ f_key }}" aria-expanded="{% if loop.index <= 3 %}true{% else %}false{% endif %}">
+                                    <div class="d-flex align-items-center justify-content-between w-100 pe-3">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <span class="badge bg-secondary rounded-pill" style="font-size: 0.7rem;">{{ loop.index }}</span>
+                                            <span class="fw-bold">{{ defn.title }}</span>
+                                            <span class="text-secondary small d-none d-md-inline" style="font-size: 0.72rem;">({{ defn.weight }} pts)</span>
+                                        </div>
+                                        <div id="statusBadge_{{ f_key }}">
+                                            {% if status == 'PRESENT' %}
+                                                <span class="badge-status status-present"><i class="bi bi-check-circle-fill"></i> PRESENT</span>
+                                            {% else %}
+                                                <span class="badge-status status-missing"><i class="bi bi-x-circle-fill"></i> MISSING</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapse_{{ f_key }}" class="accordion-collapse collapse {% if loop.index <= 3 %}show{% endif %}" data-bs-parent="#fssaiFieldsAccordion">
+                                <div class="accordion-body pt-1">
+                                    <div class="text-secondary small mb-2">
+                                        <strong>Statutory Rule:</strong> {{ defn.regulation }}
+                                    </div>
+
+                                    <!-- Extracted Evidence Quote -->
+                                    <div class="mb-2">
+                                        <div class="small fw-semibold mb-1 text-secondary">Extracted Evidence & Finding:</div>
+                                        <div class="evidence-box {% if status != 'PRESENT' %}evidence-missing{% endif %}" id="evidence_{{ f_key }}">
+                                            {{ evidence }}
+                                        </div>
+                                    </div>
+
+                                    <!-- Rules Checklist -->
+                                    <div class="mb-2" id="rulesWrapper_{{ f_key }}">
+                                        {% if rules %}
+                                            <div class="small fw-semibold mb-1 text-secondary">Rules Validated:</div>
+                                            <ul class="list-unstyled mb-0" id="rulesList_{{ f_key }}">
+                                                {% for r in rules %}
+                                                    <li class="small text-success mb-1">
+                                                        <i class="bi bi-check2-circle me-1"></i> {{ r }}
+                                                    </li>
+                                                {% endfor %}
+                                            </ul>
+                                        {% endif %}
+                                    </div>
+
+                                    <!-- Actionable Recommendation -->
+                                    <div class="bg-light p-2 px-3 rounded-2 small text-secondary border">
+                                        <i class="bi bi-lightbulb text-warning me-1"></i>
+                                        <strong>Action Required:</strong> <span id="recom_{{ f_key }}">{{ recommendation }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Statutory Advisory Disclaimer Notice -->
+            <div class="alert alert-light border small text-secondary shadow-sm">
+                <i class="bi bi-shield-exclamation text-warning me-1"></i>
+                <strong>Legal Compliance Notice:</strong> This audit report is generated by an artificial intelligence and rule-based verification tool for advisory screening purposes. It does not constitute official FSSAI certification or legal advice. Final statutory compliance determinations are governed by testing and inspections under the Food Safety and Standards Act, 2006.
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const scanId = {{ scan.id }};
+    const initialScanData = {{ scan_dict | tojson }};
+    const originalText = `{{ scan.original_ocr_text | replace('\\', '\\\\') | replace('`', '\\`') }}`;
+
+    let doughnutChart = null;
+    let radarChart = null;
+
+    // Initialize counters and charts
+    document.addEventListener('DOMContentLoaded', () => {
+        updateSummaryCounters(initialScanData.fields);
+        initCharts(initialScanData);
+        document.querySelectorAll('.image-zoom-toggle').forEach(button => {
+            button.addEventListener('click', () => {
+                const wrapper = button.parentElement.querySelector('.image-preview-wrapper');
+                const zoomed = wrapper.classList.toggle('zoomed');
+                button.setAttribute('aria-pressed', String(zoomed));
+                button.innerHTML = zoomed
+                    ? '<i class="bi bi-zoom-out me-1"></i> Fit to panel'
+                    : '<i class="bi bi-zoom-in me-1"></i> View at original size';
+            });
+        });
+    });
+
+    function updateSummaryCounters(fields) {
+        let present = 0;
+        for (const key in fields) {
+            if (fields[key].status === 'PRESENT') present++;
+        }
+        document.getElementById('cntPresentDisplay').textContent = present;
+        document.getElementById('cntMissingDisplay').textContent = Object.keys(fields).length - present;
+    }
+
+    function initCharts(scanData) {
+        const fields = scanData.fields;
+        let present = 0;
+        for (const key in fields) {
+            if (fields[key].status === 'PRESENT') present++;
+        }
+        const missing = Object.keys(fields).length - present;
+
+        // Doughnut Chart
+        const ctxDoughnut = document.getElementById('doughnutChart').getContext('2d');
+        doughnutChart = new Chart(ctxDoughnut, {
+            type: 'doughnut',
+            data: {
+                labels: ['Present', 'Missing'],
+                datasets: [{
+                    data: [present, missing],
+                    backgroundColor: ['#2e7d32', '#c62828']
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } }
+                }
+            }
+        });
+
+        // Radar Chart
+        const labels = ['Ingredients', 'Nutrition', 'Veg/Non-Veg', 'Additives', 'Manufacturer', 'Customer Care', 'Net Qty', 'MRP', 'FSSAI Lic', 'Batch', 'Dates'];
+        const keyMap = ['ingredients', 'nutrition', 'veg_nonveg', 'additives', 'manufacturer', 'customer_care', 'net_quantity', 'mrp', 'fssai_license', 'batch_number', 'date_marking'];
+        const values = keyMap.map(k => {
+            const st = fields[k] ? fields[k].status : 'MISSING';
+            return st === 'PRESENT' ? 100 : 0;
+        });
+
+        const ctxRadar = document.getElementById('radarChart').getContext('2d');
+        radarChart = new Chart(ctxRadar, {
+            type: 'radar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Compliance Level',
+                    data: values,
+                    backgroundColor: 'rgba(46, 125, 50, 0.2)',
+                    borderColor: '#2e7d32',
+                    pointBackgroundColor: '#2e7d32',
+                    pointBorderColor: '#fff',
+                    pointHoverBackgroundColor: '#fff',
+                    pointHoverBorderColor: '#2e7d32'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    r: {
+                        min: 0,
+                        max: 100,
+                        ticks: { display: false, stepSize: 50 },
+                        pointLabels: { font: { size: 8 } }
+                    }
+                },
+                plugins: {
+                    legend: { display: false }
+                }
+            }
+        });
+    }
+
+    function resetOCRText() {
+        document.getElementById('ocrTextArea').value = originalText;
+    }
+
+    async function recheckCompliance() {
+        const text = document.getElementById('ocrTextArea').value;
+        const btnText = document.getElementById('recheckBtnText');
+        const spinner = document.getElementById('recheckSpinner');
+        const alertBox = document.getElementById('recheckAlert');
+
+        btnText.classList.add('d-none');
+        spinner.classList.remove('d-none');
+        alertBox.className = 'mt-2 d-none';
+
+        try {
+            const resp = await fetch(`/api/recheck/${scanId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ocr_text: text })
+            });
+
+            const data = await resp.json();
+            if (data.success) {
+                // Update Top Score & Badge
+                const scoreElem = document.getElementById('overallScoreDisplay');
+                scoreElem.textContent = `${data.scan.overall_score}%`;
+                const badgeElem = document.getElementById('complianceStatusBadge');
+                if (data.scan.compliance_status === 'COMPLIANT') {
+                    scoreElem.className = 'h4 fw-bold mb-0 text-success';
+                    badgeElem.className = 'badge-status status-present';
+                    badgeElem.innerHTML = '<i class="bi bi-check-circle-fill"></i> COMPLIANT';
+                } else {
+                    scoreElem.className = 'h4 fw-bold mb-0 text-danger';
+                    badgeElem.className = 'badge-status status-missing';
+                    badgeElem.innerHTML = '<i class="bi bi-x-circle-fill"></i> NON-COMPLIANT';
+                }
+                document.getElementById('overallStatusDescription').textContent = data.rule_eval.status_description;
+
+                // Update Fields Accordion
+                for (const f_key in data.scan.fields) {
+                    const f_info = data.scan.fields[f_key];
+                    const stBadge = document.getElementById(`statusBadge_${f_key}`);
+                    if (stBadge) {
+                        const present = f_info.status === 'PRESENT';
+                        const statusClass = present ? 'status-present' : 'status-missing';
+                        const statusIcon = present ? 'bi-check-circle-fill' : 'bi-x-circle-fill';
+                        const statusLabel = present ? 'PRESENT' : 'MISSING';
+                        stBadge.innerHTML = `<span class="badge-status ${statusClass}"><i class="bi ${statusIcon}"></i> ${statusLabel}</span>`;
+                    }
+                    const evBox = document.getElementById(`evidence_${f_key}`);
+                    if (evBox) {
+                        evBox.textContent = f_info.evidence;
+                        evBox.classList.toggle('evidence-missing', f_info.status === 'MISSING');
+                    }
+                    const rcBox = document.getElementById(`recom_${f_key}`);
+                    if (rcBox) rcBox.textContent = f_info.recommendation;
+                }
+
+                // Update Counters & Charts
+                updateSummaryCounters(data.scan.fields);
+                updateCharts(data.scan.fields);
+
+                alertBox.className = 'alert alert-success small py-2 mt-2';
+                alertBox.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i> Evidence coverage and PDF report updated successfully!';
+            } else {
+                alertBox.className = 'alert alert-danger small py-2 mt-2';
+                alertBox.textContent = data.error || 'Re-evaluation failed.';
+            }
+        } catch (e) {
+            alertBox.className = 'alert alert-danger small py-2 mt-2';
+            alertBox.textContent = `Error connecting to re-evaluation service: ${e.message}`;
+        } finally {
+            btnText.classList.remove('d-none');
+            spinner.classList.add('d-none');
+        }
+    }
+
+    function updateCharts(fields) {
+        let present = 0;
+        for (const key in fields) {
+            if (fields[key].status === 'PRESENT') present++;
+        }
+        const missing = Object.keys(fields).length - present;
+
+        if (doughnutChart) {
+            doughnutChart.data.datasets[0].data = [present, missing];
+            doughnutChart.update();
+        }
+
+        if (radarChart) {
+            const keyMap = ['ingredients', 'nutrition', 'veg_nonveg', 'additives', 'manufacturer', 'customer_care', 'net_quantity', 'mrp', 'fssai_license', 'batch_number', 'date_marking'];
+            const values = keyMap.map(k => {
+                const st = fields[k] ? fields[k].status : 'MISSING';
+                return st === 'PRESENT' ? 100 : 0;
+            });
+            radarChart.data.datasets[0].data = values;
+            radarChart.update();
+        }
+    }
+</script>
+{% endblock %}

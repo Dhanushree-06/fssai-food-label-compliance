@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+
+{% block title %}Audit History - AI-Based Food Label Compliance Platform{% endblock %}
+
+{% block content %}
+<div class="container py-2">
+    <!-- Header & Action Bar -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+        <div>
+            <h1 class="h3 fw-bold mb-1">Audit Verification History</h1>
+            <p class="text-secondary small mb-0">Search, filter, and review previous label screening results.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('history.export_csv') }}" class="btn btn-outline-success btn-sm px-3 shadow-sm">
+                <i class="bi bi-file-earmark-spreadsheet me-1"></i> Export to CSV
+            </a>
+            <a href="{{ url_for('verifier.verify') }}" class="btn btn-success btn-sm px-3 shadow-sm">
+                <i class="bi bi-plus-circle me-1"></i> New Audit
+            </a>
+        </div>
+    </div>
+
+    <!-- Search & Filter Controls -->
+    <div class="card border-0 shadow-sm rounded-4 p-3 mb-4">
+        <form method="GET" action="{{ url_for('history.history') }}" class="row g-2 align-items-center">
+            <div class="col-md-6">
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-end-0"><i class="bi bi-search text-secondary"></i></span>
+                    <input type="text" name="search" class="form-control border-start-0" placeholder="Search by product name or OCR text..." value="{{ search_query }}">
+                </div>
+            </div>
+            <div class="col-md-4">
+                <select name="status" class="form-select" onchange="this.form.submit()">
+                    <option value="" {% if not status_filter %}selected{% endif %}>All Compliance Postures</option>
+                    <option value="COMPLIANT" {% if status_filter == 'COMPLIANT' %}selected{% endif %}>Compliant (all checks confirmed)</option>
+                    <option value="NON_COMPLIANT" {% if status_filter == 'NON_COMPLIANT' %}selected{% endif %}>Non-compliant (one or more checks missing)</option>
+                </select>
+            </div>
+            <div class="col-md-2 d-flex gap-2">
+                <button type="submit" class="btn btn-primary w-100">Filter</button>
+                {% if search_query or status_filter %}
+                    <a href="{{ url_for('history.history') }}" class="btn btn-outline-secondary" title="Reset Filters"><i class="bi bi-x-lg"></i></a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+
+    <!-- Scans Table -->
+    {% if scans %}
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0 table-history">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-4">Preview</th>
+                        <th>Scan ID & Product</th>
+                        <th>Timestamp</th>
+                        <th>Evidence Coverage</th>
+                        <th>Status</th>
+                        <th class="text-end pe-4">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for scan in scans %}
+                    <tr>
+                        <td class="ps-4" style="width: 70px;">
+                            <img src="{{ url_for('static', filename=scan.annotated_image_path or scan.image_path) }}"
+                                 alt="Thumbnail"
+                                 class="rounded border"
+                                 style="width: 50px; height: 50px; object-fit: cover;">
+                        </td>
+                        <td>
+                            <div class="fw-bold text-dark">{{ scan.product_name }}</div>
+                            <div class="text-secondary small">Engine: {{ scan.ocr_engine }}</div>
+                        </td>
+                        <td class="text-secondary small">
+                            {{ scan.created_at.strftime('%Y-%m-%d') }}<br>
+                            <span class="text-muted">{{ scan.created_at.strftime('%H:%M:%S') }}</span>
+                        </td>
+                        <td>
+                            <div class="d-flex align-items-center gap-2" style="width: 140px;">
+                                <span class="fw-bold fs-6">{{ scan.overall_score }}%</span>
+                                <div class="progress flex-grow-1 score-progress">
+                                    <div class="progress-bar {% if scan.compliance_status == 'COMPLIANT' %}bg-success{% else %}bg-danger{% endif %}"
+                                         style="width: {{ scan.overall_score }}%;"></div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            {% if scan.compliance_status == 'COMPLIANT' %}
+                                <span class="badge-status status-present">COMPLIANT</span>
+                            {% else %}
+                                <span class="badge-status status-missing">NON-COMPLIANT</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end pe-4">
+                            <div class="d-inline-flex gap-1">
+                                <a href="{{ url_for('verifier.view_scan', scan_id=scan.id) }}"
+                                   class="btn btn-outline-success btn-sm"
+                                   title="View Full Audit">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <a href="{{ url_for('verifier.download_pdf', scan_id=scan.id) }}"
+                                   class="btn btn-outline-danger btn-sm"
+                                   title="Download PDF Report" target="_blank">
+                                    <i class="bi bi-file-earmark-pdf"></i>
+                                </a>
+                                <form action="{{ url_for('history.delete_scan', scan_id=scan.id) }}"
+                                      method="POST"
+                                      class="d-inline"
+                                      onsubmit="return confirm('Are you sure you want to permanently delete scan #{{ scan.id }}?');">
+                                    <button type="submit" class="btn btn-outline-secondary btn-sm" title="Delete Scan">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="card-footer bg-light py-2 text-secondary small text-center">
+            Showing {{ total_scans }} total audit records.
+        </div>
+    </div>
+    {% else %}
+    <div class="card border-0 shadow-sm rounded-4 p-5 text-center">
+        <i class="bi bi-inbox display-4 text-secondary mb-3"></i>
+        <h4 class="fw-bold">No Audit Records Found</h4>
+        <p class="text-secondary small mb-4">No verification scans match your current filter criteria.</p>
+        <div>
+            <a href="{{ url_for('verifier.verify') }}" class="btn btn-success px-4">
+                <i class="bi bi-camera me-1"></i> Start a New Label Verification
+            </a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
